@@ -17,6 +17,95 @@ const supabaseClient = supabase.createClient(
 );
 
 // ======================
+// 【核心】6组实验条件硬编码
+// ======================
+
+// 1. 固定不变的主内容
+const mainContent = `哈喽，最近手头有点紧，
+突然想起之前借你的5000块钱，
+当初约定的还款日期已经过了一个月啦，
+你看最近方便把钱还我不？
+
+要是有啥难处咱们也可以商量着来~`;
+
+// 2. 定义6组的完整配置 (请在此处填入你准备好的6段特定文本)
+const CONDITIONS = [
+    // --- 第1组：隶属 + 抽象 ---
+    {
+        group_type: "structure",
+        explain_type: "abstract",
+        full_text: mainContent + `
+
+💡 推荐说明：
+这段内容是根据当前对话的核心语义生成的，旨在为你提供有价值的参考。`
+    },
+
+    // --- 第2组：隶属 + 具体 ---
+    {
+        group_type: "structure",
+        explain_type: "concrete",
+        full_text: mainContent + `
+
+💡 猜你还想知道：
+这段还钱提醒话术还能如何进一步优化表达效果？
+
+① 补充“借款金额+时间+约定日期”
+② 调整为“明确时间点”
+③ 调整语气，使表达更清晰直接`
+    },
+
+    // --- 第3组：隶属 + 无解释 ---
+    {
+        group_type: "structure",
+        explain_type: "none",
+        full_text: mainContent
+    },
+
+    // --- 第4组：派生 + 抽象 ---
+    {
+        group_type: "derived",
+        explain_type: "abstract",
+        full_text: mainContent + `
+
+💡 推荐说明：
+这是其他用户在类似场景下使用较多的表达方式，供你参考。`
+    },
+
+    // --- 第5组：派生 + 具体 ---
+    {
+        group_type: "derived",
+        explain_type: "concrete",
+        full_text: mainContent + `
+
+💡 大家还在问：
+其他用户通常还会从以下几个角度进行调整：
+
+① 补充具体的借款背景
+② 提供一个具体的还款日期
+③ 询问对方当前的经济状况`
+    },
+
+    // --- 第6组：派生 + 无解释 ---
+    {
+        group_type: "derived",
+        explain_type: "none",
+        full_text: mainContent
+    }
+];
+
+// 3. 随机抽取一组
+function getRandomCondition() {
+    const randomIndex = Math.floor(Math.random() * CONDITIONS.length);
+    return CONDITIONS[randomIndex];
+}
+
+// 执行抽取
+const currentCondition = getRandomCondition();
+const group_type = currentCondition.group_type;
+const explain_type = currentCondition.explain_type;
+const firstAIMessage = currentCondition.full_text;
+
+// ======================
 // 实验变量
 // ======================
 
@@ -30,10 +119,6 @@ let remaining = 60;
 const session_id =
     Date.now().toString() +
     Math.random().toString(36).slice(2);
-
-// 实验条件（你后面可以自动随机）
-const group_type = "structure";
-const explain_type = "concrete";
 
 // ======================
 // 添加消息（含流式输出）
@@ -52,39 +137,31 @@ function addMessage(role, text) {
 
 // 流式输出消息（AI回复用这个）
 async function addStreamingMessage(role, text) {
-    // 1. 先创建一个空的消息容器
     const div = document.createElement("div");
     div.className = "message " + role;
     const bubble = document.createElement("div");
     bubble.className = "bubble";
-    bubble.innerHTML = ""; // 初始为空
+    bubble.innerHTML = "";
     div.appendChild(bubble);
     messages.appendChild(div);
     
-    // 2. 锁住输入，防止打断
     input.disabled = true;
     sendBtn.disabled = true;
 
-    // 3. 逐字输出（打字机效果）
     let currentIndex = 0;
     const chars = text.split(''); 
     
-    // 返回一个Promise，等打字打完再继续后面的逻辑
     return new Promise((resolve) => {
         const typeInterval = setInterval(() => {
             if (currentIndex < chars.length) {
-                // 一次加一个字符
                 bubble.innerHTML += chars[currentIndex];
                 currentIndex++;
-                // 自动滚动到底部
                 messages.scrollTop = messages.scrollHeight;
             } else {
-                // 打完了
                 clearInterval(typeInterval);
-                // 【关键逻辑恢复】这里不解锁！必须等用户提交任务
-                resolve(); // 通知外面打完了
+                resolve();
             }
-        }, 40); // 40ms是打字速度
+        }, 40);
     });
 }
 
@@ -117,27 +194,11 @@ async function sendMessage() {
     if (firstStage) {
         firstStage = false;
 
-        // 使用流式输出
+        // 使用动态抽取的完整文本
         await addStreamingMessage(
             "assistant",
-`给你生成的还钱提醒话术如下：
-
-哈喽，最近手头有点紧，
-突然想起之前借你的5000块钱，
-当初约定的还款日期已经过了一个月啦，
-你看最近方便把钱还我不？
-
-要是有啥难处咱们也可以商量着来~
-
-💡 猜你还想知道：
-这段还钱提醒话术还能如何进一步优化表达效果？
-
-① 补充“借款金额+时间+约定日期”
-② 调整为“明确时间点”
-③ 调整语气，使表达更清晰直接`
+            firstAIMessage
         );
-
-        // 【逻辑保持】输入框依然是锁的，必须提交任务
 
         // 显示任务区
         finalText.style.display = "block";
@@ -158,7 +219,6 @@ async function sendMessage() {
     followupQuestion = text;
     clearInterval(countdown);
 
-    // 使用流式输出
     await addStreamingMessage(
         "assistant",
         "好的，我来进一步帮你优化。"
@@ -184,7 +244,7 @@ submitBtn.addEventListener("click", () => {
         当前任务已提交 ✔
     `;
 
-    // 【核心修改】提交任务后，直接自动解锁输入框（替代原来的按钮功能）
+    // 提交后解锁输入框
     input.disabled = false;
     sendBtn.disabled = false;
     input.focus();
@@ -202,7 +262,6 @@ function startCountdown() {
         document.getElementById("countText").innerText =
             `系统正在生成实验报告（${remaining}s）`;
 
-        // 时间结束
         if (remaining <= 0 && !hasFollowup) {
             clearInterval(countdown);
             await saveData(
@@ -253,8 +312,8 @@ async function saveData(
     .from("exp2_data")
     .insert([{
         session_id: session_id,
-        group_type: group_type,
-        explain_type: explain_type,
+        group_type: group_type,       // 自动保存随机到的分组
+        explain_type: explain_type,   // 自动保存随机到的分组
         first_question: "帮我写一段还钱提醒话术",
         continued_chat: continued_chat,
         followup_question: followup_question,
@@ -265,6 +324,6 @@ async function saveData(
         console.log(error);
         alert("数据库错误：" + error.message);
     } else {
-        console.log("保存成功");
+        console.log("保存成功，当前分组：", group_type, explain_type);
     }
 }
