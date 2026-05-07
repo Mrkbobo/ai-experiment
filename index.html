@@ -3,69 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>AI实验平台</title>
+
 <link rel="stylesheet" href="style.css">
+
 </head>
 <body>
 
-<div class="container">
+<div class="layout">
 
     <!-- 左侧聊天 -->
-    <div class="chat-panel">
+    <div class="chat-area">
 
-        <div class="header">
+        <div class="topbar">
             AI 对话
         </div>
 
         <div id="messages" class="messages"></div>
 
-        <div id="inputArea" class="input-area">
-            <input id="input" placeholder="请输入...">
-            <button onclick="sendFirstQuestion()">发送</button>
+        <div class="input-box" id="inputBox">
+
+            <input
+                id="input"
+                placeholder="请输入..."
+            >
+
+            <button id="sendBtn">
+                发送
+            </button>
+
         </div>
 
     </div>
 
-    <!-- 右侧任务 -->
-    <div class="task-panel">
+    <!-- 右侧任务栏 -->
+    <div class="sidebar">
 
-        <div class="task-box">
+        <div class="task-card">
 
-            <h2>任务状态</h2>
+            <h2>当前任务</h2>
 
-            <div id="taskContent">
+            <p>
+                请根据 AI 提供的内容完成当前任务。
+            </p>
 
-                请根据 AI 回答完成任务。
+            <div id="taskState">
+
+                等待开始
 
             </div>
 
-            <button id="submitBtn" onclick="submitTask()" style="display:none;">
-                提交任务
+            <button
+                id="submitBtn"
+                style="display:none;"
+            >
+                已完成任务，提交
             </button>
 
-            <div id="analysisBox" style="display:none;">
+        </div>
 
-                <p>
-                    系统正在生成实验报告，请不要离开页面。
-                </p>
+        <div
+            id="analysisCard"
+            class="task-card"
+            style="display:none;"
+        >
 
-                <p>
-                    完成后请根据结束页面领取实验报酬。
-                </p>
+            <h2>系统分析中</h2>
 
-                <p>
-                    您可以继续与 AI 聊天，也可以等待。
-                </p>
+            <p>
+                系统正在生成实验报告。
+            </p>
 
-                <button onclick="continueChat()">
-                    继续和AI聊天
-                </button>
+            <p>
+                请不要关闭页面。
+            </p>
 
-                <button onclick="finishExperiment()">
-                    结束实验
-                </button>
+            <p>
+                您可以继续与 AI 聊天，
+                也可以等待。
+            </p>
 
-            </div>
+            <button id="continueBtn">
+                继续聊天
+            </button>
+
+            <button id="finishBtn">
+                结束实验
+            </button>
 
         </div>
 
@@ -73,5 +98,26 @@
 
 </div>
 
-<!-- 追问原因弹窗 -->
+<!-- 原因弹窗 -->
+<div
+    id="reasonModal"
+    class="modal"
+>
+
+    <div class="modal-content">
+
+        <h3>您为什么继续追问？</h3>
+
+        <button class="reason-btn">A 当前任务可能有帮助</button>
+        <button class="reason-btn">B 推荐内容比较新颖</button>
+        <button class="reason-btn">C 继续询问没有成本</button>
+        <button class="reason-btn">D 只是随便看看</button>
+
+    </div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
 </html>

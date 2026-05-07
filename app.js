@@ -1,29 +1,33 @@
-const client = supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
-
 const messages = document.getElementById("messages");
+
 const input = document.getElementById("input");
 
-let session_id = Date.now().toString();
+const sendBtn = document.getElementById("sendBtn");
 
-let group_type = "structure";
-let explain_type = "abstract";
+const submitBtn = document.getElementById("submitBtn");
 
-let first_question = "";
-let followup_question = "";
-let followup_reason = "";
+const continueBtn = document.getElementById("continueBtn");
 
-let continued_chat = false;
+const finishBtn = document.getElementById("finishBtn");
 
-// =========================
+const taskState = document.getElementById("taskState");
+
+const analysisCard = document.getElementById("analysisCard");
+
+const modal = document.getElementById("reasonModal");
+
+let firstStage = true;
+
+let hasFollowup = false;
+
+// =====================
 // 添加消息
-// =========================
+// =====================
 
-function addMessage(role, text) {
+function addMessage(role,text){
 
     const div = document.createElement("div");
+
     div.className = "message " + role;
 
     div.innerHTML = `
@@ -35,26 +39,42 @@ function addMessage(role, text) {
     messages.scrollTop = messages.scrollHeight;
 }
 
-// =========================
-// 第一次提问
-// =========================
+// =====================
+// 发送
+// =====================
 
-function sendFirstQuestion() {
+sendBtn.addEventListener("click",sendMessage);
+
+input.addEventListener("keydown",(e)=>{
+
+    if(e.key==="Enter"){
+
+        sendMessage();
+    }
+});
+
+// =====================
+// 主发送逻辑
+// =====================
+
+function sendMessage(){
 
     const text = input.value.trim();
 
-    if (!text) return;
+    if(!text) return;
 
-    first_question = text;
-
-    addMessage("user", text);
+    addMessage("user",text);
 
     input.value = "";
 
-    // 固定 AI 回答
+    // 第一次提问
+    if(firstStage){
 
-    const reply = `
-给你生成的还钱提醒话术如下：
+        firstStage = false;
+
+        addMessage(
+            "assistant",
+`给你生成的还钱提醒话术如下：
 
 哈喽，最近手头有点紧，突然想起之前借你的5000块钱，当初约定的还款日期已经过了一个月啦，你看最近方便把钱还我不？
 
@@ -65,104 +85,85 @@ function sendFirstQuestion() {
 
 ① 补充“借款金额+时间+约定日期”
 ② 调整为“明确时间点”
-③ 调整语气，使表达更清晰直接
-`;
+③ 调整语气，使表达更清晰直接`
+        );
 
-    addMessage("assistant", reply);
+        // 锁输入
+        input.disabled = true;
 
-    // 锁死输入框
+        sendBtn.disabled = true;
 
-    document.getElementById("inputArea").style.display = "none";
+        taskState.innerHTML = `
+            AI 已生成内容，
+            请先完成任务后再继续。
+        `;
 
-    // 显示提交按钮
+        submitBtn.style.display = "block";
 
-    document.getElementById("submitBtn").style.display = "block";
-}
+        return;
+    }
 
-// =========================
-// 提交任务
-// =========================
-function submitTask() {
-    document.getElementById("submitBtn").style.display = "none";
-    document.getElementById("analysisBox").style.display = "block";
-}
+    // 第二阶段追问
 
-// =========================
-// 第二次追问
-// =========================
-
-function sendFollowup() {
-
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    followup_question = text;
-
-    addMessage("user", text);
-
-    input.value = "";
+    hasFollowup = true;
 
     addMessage(
         "assistant",
-        "好的，我来帮你进一步优化。"
+        "好的，我来进一步帮你优化。"
     );
 
-    // 弹出原因调查
-
-    document.getElementById("reasonModal").style.display = "flex";
+    modal.style.display = "flex";
 }
 
-// =========================
-// 选择原因
-// =========================
+// =====================
+// 提交任务
+// =====================
 
-async function selectReason(reason) {
+submitBtn.addEventListener("click",()=>{
 
-    followup_reason = reason;
+    submitBtn.style.display = "none";
 
-    document.getElementById("reasonModal").style.display = "none";
+    analysisCard.style.display = "block";
 
-    await saveData();
+    taskState.innerHTML = `
+        当前任务已提交 ✔
+    `;
+});
 
-    alert("数据已记录，感谢参与！");
-}
+// =====================
+// 继续聊天
+// =====================
 
-// =========================
-// 保存数据
-// =========================
+continueBtn.addEventListener("click",()=>{
 
-async function saveData() {
+    input.disabled = false;
 
-    const { error } = await client
-        .from('experiment_data')
-        .insert([
-            {
-                session_id,
-                group_type,
-                explain_type,
-                first_question,
-                continued_chat,
-                followup_question,
-                followup_reason
-            }
-        ]);
+    sendBtn.disabled = false;
 
-    if (error) {
-        console.log(error);
-    }
-}
+    input.focus();
+});
 
-// =========================
+// =====================
 // 结束实验
-// =========================
+// =====================
 
-async function finishExperiment() {
-
-    if (!continued_chat) {
-
-        await saveData();
-    }
+finishBtn.addEventListener("click",()=>{
 
     alert("实验结束，请联系研究者领取报酬。");
-}
+});
+
+// =====================
+// 原因按钮
+// =====================
+
+document
+.querySelectorAll(".reason-btn")
+.forEach(btn=>{
+
+    btn.addEventListener("click",()=>{
+
+        modal.style.display = "none";
+
+        alert("数据已记录，感谢参与！");
+    });
+});
