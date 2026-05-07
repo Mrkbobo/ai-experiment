@@ -24,11 +24,11 @@ const supabaseClient = supabase.createClient(
 // 6组实验条件硬编码
 // ======================
 
-const mainContent = `哈喽，最近手头有点紧，
+const mainContent = `这是按照您的要求生成的短信话术，请您参考：
+哈喽，最近手头有点紧，
 突然想起之前借你的5000块钱，
 当初约定的还款日期已经过了一个月啦，
 你看最近方便把钱还我不？
-
 要是有啥难处咱们也可以商量着来~`;
 
 const CONDITIONS = [
@@ -217,7 +217,7 @@ async function sendMessage() {
         );
 
         // AI回答完，弹提示框
-        alert("AI 已为您生成初始内容！\n\n请先在页面右侧的任务栏中，整理并提交您满意的最终短信内容，提交后才能继续进行实验。");
+        alert("AI 已为您生成初始内容！\n\n请先在页面的任务栏中，整理并提交您满意的最终短信内容，提交后才能继续进行实验。");
 
         // 显示任务区
         finalText.style.display = "block";
