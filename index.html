@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI实验平台</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- 左侧聊天 -->
+    <div class="chat-panel">
+
+        <div class="header">
+            AI 对话
+        </div>
+
+        <div id="messages" class="messages"></div>
+
+        <div id="inputArea" class="input-area">
+            <input id="input" placeholder="请输入...">
+            <button onclick="sendFirstQuestion()">发送</button>
+        </div>
+
+    </div>
+
+    <!-- 右侧任务 -->
+    <div class="task-panel">
+
+        <div class="task-box">
+
+            <h2>任务状态</h2>
+
+            <div id="taskContent">
+
+                请根据 AI 回答完成任务。
+
+            </div>
+
+            <button id="submitBtn" onclick="submitTask()" style="display:none;">
+                提交任务
+            </button>
+
+            <div id="analysisBox" style="display:none;">
+
+                <p>
+                    系统正在生成实验报告，请不要离开页面。
+                </p>
+
+                <p>
+                    完成后请根据结束页面领取实验报酬。
+                </p>
+
+                <p>
+                    您可以继续与 AI 聊天，也可以等待。
+                </p>
+
+                <button onclick="continueChat()">
+                    继续和AI聊天
+                </button>
+
+                <button onclick="finishExperiment()">
+                    结束实验
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- 追问原因弹窗 -->
+</html>
