@@ -7,6 +7,10 @@ const analysisCard = document.getElementById("analysisCard");
 const modal = document.getElementById("reasonModal");
 const finalText = document.getElementById("finalText");
 
+// 开头弹窗元素
+const introModal = document.getElementById("introModal");
+const introConfirmBtn = document.getElementById("introConfirmBtn");
+
 // ======================
 // Supabase
 // ======================
@@ -17,10 +21,9 @@ const supabaseClient = supabase.createClient(
 );
 
 // ======================
-// 【核心】6组实验条件硬编码
+// 6组实验条件硬编码
 // ======================
 
-// 1. 固定不变的主内容
 const mainContent = `哈喽，最近手头有点紧，
 突然想起之前借你的5000块钱，
 当初约定的还款日期已经过了一个月啦，
@@ -28,7 +31,6 @@ const mainContent = `哈喽，最近手头有点紧，
 
 要是有啥难处咱们也可以商量着来~`;
 
-// 2. 定义6组的完整配置 (请在此处填入你准备好的6段特定文本)
 const CONDITIONS = [
     // --- 第1组：隶属 + 抽象 ---
     {
@@ -36,8 +38,8 @@ const CONDITIONS = [
         explain_type: "abstract",
         full_text: mainContent + `
 
-💡 推荐说明：
-这段内容是根据当前对话的核心语义生成的，旨在为你提供有价值的参考。`
+💡 推荐说明
+本条推荐是基于当前生成的还钱话术的内容逻辑与表达框架给出的，核心目的是帮你优化这条话术的沟通效果，更好地达成你的诉求。`
     },
 
     // --- 第2组：隶属 + 具体 ---
@@ -46,12 +48,11 @@ const CONDITIONS = [
         explain_type: "concrete",
         full_text: mainContent + `
 
-💡 猜你还想知道：
-这段还钱提醒话术还能如何进一步优化表达效果？
-
-① 补充“借款金额+时间+约定日期”
-② 调整为“明确时间点”
-③ 调整语气，使表达更清晰直接`
+💡 本条话术可优化方向
+你可以从以下角度调整这条还钱提醒话术，进一步提升表达效果：
+① 给本条话术补充更具体的借款时间、当初的约定细节，强化事实依据
+② 给本条话术补充一个明确的还款时间节点，替代模糊的“最近”表述
+③ 给本条话术调整语气，可根据你和对方的熟悉程度，在委婉与直接之间找到更适配的平衡`
     },
 
     // --- 第3组：隶属 + 无解释 ---
@@ -67,8 +68,8 @@ const CONDITIONS = [
         explain_type: "abstract",
         full_text: mainContent + `
 
-💡 推荐说明：
-这是其他用户在类似场景下使用较多的表达方式，供你参考。`
+💡 推荐说明
+本条推荐是基于「向熟人催还欠款」这个社交沟通场景的通用原则给出的，核心目的是帮你更好地处理这类敏感沟通，兼顾人情与诉求。`
     },
 
     // --- 第5组：派生 + 具体 ---
@@ -77,12 +78,11 @@ const CONDITIONS = [
         explain_type: "concrete",
         full_text: mainContent + `
 
-💡 大家还在问：
-其他用户通常还会从以下几个角度进行调整：
-
-① 补充具体的借款背景
-② 提供一个具体的还款日期
-③ 询问对方当前的经济状况`
+💡 催款沟通通用技巧
+向熟人催还欠款时，你可以参考这些被广泛验证的沟通原则：
+① 先同步自己的资金困境，降低对方的抵触情绪，避免让对方感受到被指责
+② 沟通时明确约定具体的还款时间，避免模糊表述带来的拖延与误解
+③ 和熟人沟通催款，建议兼顾情理，主动给对方预留协商的空间，减少关系损伤`
     },
 
     // --- 第6组：派生 + 无解释 ---
@@ -93,13 +93,11 @@ const CONDITIONS = [
     }
 ];
 
-// 3. 随机抽取一组
 function getRandomCondition() {
     const randomIndex = Math.floor(Math.random() * CONDITIONS.length);
     return CONDITIONS[randomIndex];
 }
 
-// 执行抽取
 const currentCondition = getRandomCondition();
 const group_type = currentCondition.group_type;
 const explain_type = currentCondition.explain_type;
@@ -115,16 +113,36 @@ let followupQuestion = "";
 let countdown = null;
 let remaining = 60;
 
-// session id
 const session_id =
     Date.now().toString() +
     Math.random().toString(36).slice(2);
 
 // ======================
+// 页面初始化：开头弹窗逻辑
+// ======================
+window.onload = function() {
+    // 页面加载时，先锁死所有输入和按钮
+    input.disabled = true;
+    sendBtn.disabled = true;
+    submitBtn.disabled = true;
+    finalText.disabled = true;
+};
+
+// 点击确认按钮，关闭弹窗，解锁页面
+introConfirmBtn.addEventListener("click", () => {
+    introModal.style.display = "none";
+    // 解锁初始输入框，让用户可以提问
+    input.disabled = false;
+    sendBtn.disabled = false;
+    finalText.disabled = false;
+    submitBtn.disabled = false;
+    input.focus();
+});
+
+// ======================
 // 添加消息（含流式输出）
 // ======================
 
-// 普通消息（用户消息用这个）
 function addMessage(role, text) {
     const div = document.createElement("div");
     div.className = "message " + role;
@@ -135,7 +153,6 @@ function addMessage(role, text) {
     messages.scrollTop = messages.scrollHeight;
 }
 
-// 流式输出消息（AI回复用这个）
 async function addStreamingMessage(role, text) {
     const div = document.createElement("div");
     div.className = "message " + role;
@@ -194,11 +211,13 @@ async function sendMessage() {
     if (firstStage) {
         firstStage = false;
 
-        // 使用动态抽取的完整文本
         await addStreamingMessage(
             "assistant",
             firstAIMessage
         );
+
+        // AI回答完，弹提示框
+        alert("AI 已为您生成初始内容！\n\n请先在页面右侧的任务栏中，整理并提交您满意的最终短信内容，提交后才能继续进行实验。");
 
         // 显示任务区
         finalText.style.display = "block";
@@ -243,6 +262,9 @@ submitBtn.addEventListener("click", () => {
     taskState.innerHTML = `
         当前任务已提交 ✔
     `;
+
+    // 提交成功弹提示框
+    alert("任务提交成功！\n\n系统正在生成实验报告（约60秒）。\n在此期间，您可以继续与 AI 聊天，也可以等待倒计时自动结束。");
 
     // 提交后解锁输入框
     input.disabled = false;
@@ -312,8 +334,8 @@ async function saveData(
     .from("exp2_data")
     .insert([{
         session_id: session_id,
-        group_type: group_type,       // 自动保存随机到的分组
-        explain_type: explain_type,   // 自动保存随机到的分组
+        group_type: group_type,
+        explain_type: explain_type,
         first_question: "帮我写一段还钱提醒话术",
         continued_chat: continued_chat,
         followup_question: followup_question,
