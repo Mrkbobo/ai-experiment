@@ -1,28 +1,40 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>AI实验平台</title>
 
 <link rel="stylesheet" href="style.css">
 
 </head>
+
 <body>
 
 <div class="layout">
 
-    <!-- 左侧聊天 -->
+    <!-- 左侧聊天区域 -->
     <div class="chat-area">
 
         <div class="topbar">
+
             AI 对话
+
         </div>
 
-        <div id="messages" class="messages"></div>
+        <div
+            id="messages"
+            class="messages"
+        ></div>
 
-        <div class="input-box" id="inputBox">
+        <div
+            class="input-box"
+            id="inputBox"
+        >
 
             <input
                 id="input"
@@ -30,7 +42,9 @@
             >
 
             <button id="sendBtn">
+
                 发送
+
             </button>
 
         </div>
@@ -40,12 +54,17 @@
     <!-- 右侧任务栏 -->
     <div class="sidebar">
 
+        <!-- 当前任务 -->
         <div class="task-card">
 
             <h2>当前任务</h2>
 
             <p>
-                请根据 AI 提供的内容完成当前任务。
+
+                请您与AI助手合作撰写一则短信，
+                用于委婉地催促朋友还钱，
+                并根据 AI 提供的内容完成当前任务。
+
             </p>
 
             <div id="taskState">
@@ -54,42 +73,74 @@
 
             </div>
 
+            <!-- 用户填写区 -->
+            <textarea
+                id="finalText"
+                placeholder="请整理最终短信内容..."
+                style="
+                    width:100%;
+                    height:140px;
+                    margin-top:15px;
+                    border-radius:12px;
+                    border:1px solid #d0d7e2;
+                    padding:12px;
+                    resize:none;
+                    box-sizing:border-box;
+                    display:none;
+                    font-size:14px;
+                    line-height:1.6;
+                    outline:none;
+                "
+            ></textarea>
+
+            <!-- 提交按钮 -->
             <button
                 id="submitBtn"
                 style="display:none;"
             >
+
                 已完成任务，提交
+
             </button>
 
         </div>
 
+        <!-- 分析阶段 -->
         <div
             id="analysisCard"
             class="task-card"
             style="display:none;"
         >
 
-            <h2>系统分析中</h2>
+            <h2>
 
-            <p>
-                系统正在生成实验报告。
+                系统分析中
+
+            </h2>
+
+            <p id="countText">
+
+                系统正在生成实验报告（60s）
+
             </p>
 
             <p>
+
                 请不要关闭页面。
+
             </p>
 
             <p>
+
                 您可以继续与 AI 聊天，
-                也可以等待。
+                也可以等待系统自动完成。
+
             </p>
 
             <button id="continueBtn">
-                继续聊天
-            </button>
 
-            <button id="finishBtn">
-                结束实验
+                继续聊天
+
             </button>
 
         </div>
@@ -106,17 +157,47 @@
 
     <div class="modal-content">
 
-        <h3>您为什么继续追问？</h3>
+        <h3>
 
-        <button class="reason-btn">A 当前任务可能有帮助</button>
-        <button class="reason-btn">B 推荐内容比较新颖</button>
-        <button class="reason-btn">C 继续询问没有成本</button>
-        <button class="reason-btn">D 只是随便看看</button>
+            您为什么继续追问？
+
+        </h3>
+
+        <button class="reason-btn">
+
+            A 当前任务可能还有帮助
+
+        </button>
+
+        <button class="reason-btn">
+
+            B 推荐内容比较新颖
+
+        </button>
+
+        <button class="reason-btn">
+
+            C 继续询问没有成本
+
+        </button>
+
+        <button class="reason-btn">
+
+            D 只是随便看看
+
+        </button>
 
     </div>
 
 </div>
 
+<!-- Supabase -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<!-- 配置 -->
+<script src="config.js"></script>
+
+<!-- 主逻辑 -->
 <script src="app.js"></script>
 
 </body>

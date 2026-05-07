@@ -8,21 +8,52 @@ const submitBtn = document.getElementById("submitBtn");
 
 const continueBtn = document.getElementById("continueBtn");
 
-const finishBtn = document.getElementById("finishBtn");
-
 const taskState = document.getElementById("taskState");
 
 const analysisCard = document.getElementById("analysisCard");
 
 const modal = document.getElementById("reasonModal");
 
+const finalText = document.getElementById("finalText");
+
+// ======================
+// Supabase
+// ======================
+
+const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+// ======================
+// 实验变量
+// ======================
+
 let firstStage = true;
 
 let hasFollowup = false;
 
-// =====================
+let followupQuestion = "";
+
+let countdown = null;
+
+let remaining = 60;
+
+// session id
+
+const session_id =
+    Date.now().toString() +
+    Math.random().toString(36).slice(2);
+
+// 实验条件（你后面可以自动随机）
+
+const group_type = "structure";
+
+const explain_type = "concrete";
+
+// ======================
 // 添加消息
-// =====================
+// ======================
 
 function addMessage(role,text){
 
@@ -39,9 +70,9 @@ function addMessage(role,text){
     messages.scrollTop = messages.scrollHeight;
 }
 
-// =====================
-// 发送
-// =====================
+// ======================
+// 发送按钮
+// ======================
 
 sendBtn.addEventListener("click",sendMessage);
 
@@ -53,9 +84,9 @@ input.addEventListener("keydown",(e)=>{
     }
 });
 
-// =====================
+// ======================
 // 主发送逻辑
-// =====================
+// ======================
 
 function sendMessage(){
 
@@ -67,7 +98,10 @@ function sendMessage(){
 
     input.value = "";
 
-    // 第一次提问
+    // ======================
+    // 第一阶段
+    // ======================
+
     if(firstStage){
 
         firstStage = false;
@@ -76,7 +110,10 @@ function sendMessage(){
             "assistant",
 `给你生成的还钱提醒话术如下：
 
-哈喽，最近手头有点紧，突然想起之前借你的5000块钱，当初约定的还款日期已经过了一个月啦，你看最近方便把钱还我不？
+哈喽，最近手头有点紧，
+突然想起之前借你的5000块钱，
+当初约定的还款日期已经过了一个月啦，
+你看最近方便把钱还我不？
 
 要是有啥难处咱们也可以商量着来~
 
@@ -89,23 +126,34 @@ function sendMessage(){
         );
 
         // 锁输入
+
         input.disabled = true;
 
         sendBtn.disabled = true;
 
-        taskState.innerHTML = `
-            AI 已生成内容，
-            请先完成任务后再继续。
-        `;
+        // 显示任务区
+
+        finalText.style.display = "block";
 
         submitBtn.style.display = "block";
+
+        taskState.innerHTML = `
+            AI 已生成内容，
+            请整理最终短信内容并提交。
+        `;
 
         return;
     }
 
+    // ======================
     // 第二阶段追问
+    // ======================
 
     hasFollowup = true;
+
+    followupQuestion = text;
+
+    clearInterval(countdown);
 
     addMessage(
         "assistant",
@@ -115,11 +163,20 @@ function sendMessage(){
     modal.style.display = "flex";
 }
 
-// =====================
+// ======================
 // 提交任务
-// =====================
+// ======================
 
 submitBtn.addEventListener("click",()=>{
+
+    const text = finalText.value.trim();
+
+    if(!text){
+
+        alert("请先填写最终短信内容");
+
+        return;
+    }
 
     submitBtn.style.display = "none";
 
@@ -128,42 +185,127 @@ submitBtn.addEventListener("click",()=>{
     taskState.innerHTML = `
         当前任务已提交 ✔
     `;
+
+    startCountdown();
 });
 
-// =====================
+// ======================
+// 倒计时
+// ======================
+
+function startCountdown(){
+
+    countdown = setInterval(async ()=>{
+
+        remaining--;
+
+        document.getElementById("countText").innerText =
+            `系统正在生成实验报告（${remaining}s）`;
+
+        // 时间结束
+
+        if(remaining <= 0 && !hasFollowup){
+
+            clearInterval(countdown);
+
+            await saveData(
+                false,
+                "",
+                ""
+            );
+
+            alert("实验结束，感谢参与！");
+
+            location.reload();
+        }
+
+    },1000);
+}
+
+// ======================
 // 继续聊天
-// =====================
+// ======================
 
 continueBtn.addEventListener("click",()=>{
+
+    clearInterval(countdown);
 
     input.disabled = false;
 
     sendBtn.disabled = false;
 
     input.focus();
+
+    continueBtn.style.display = "none";
 });
 
-// =====================
-// 结束实验
-// =====================
-
-finishBtn.addEventListener("click",()=>{
-
-    alert("实验结束，请联系研究者领取报酬。");
-});
-
-// =====================
+// ======================
 // 原因按钮
-// =====================
+// ======================
 
 document
 .querySelectorAll(".reason-btn")
 .forEach(btn=>{
 
-    btn.addEventListener("click",()=>{
+    btn.addEventListener("click",async ()=>{
+
+        const reason = btn.innerText;
 
         modal.style.display = "none";
 
-        alert("数据已记录，感谢参与！");
+        await saveData(
+            true,
+            followupQuestion,
+            reason
+        );
+
+        alert("实验结束，感谢参与！");
+
+        location.reload();
     });
 });
+
+// ======================
+// 保存数据
+// ======================
+
+async function saveData(
+
+    continued_chat,
+    followup_question,
+    followup_reason
+
+){
+
+    const { error } =
+    await supabaseClient
+    .from("exp2_data")
+    .insert([{
+
+        session_id: session_id,
+
+        group_type: group_type,
+
+        explain_type: explain_type,
+
+        first_question: "帮我写一段还钱提醒话术",
+
+        continued_chat: continued_chat,
+
+        followup_question: followup_question,
+
+        followup_reason: followup_reason
+
+    }]);
+
+    if(error){
+
+        console.log(error);
+
+        alert("数据库错误：" + error.message);
+
+    }else{
+
+        console.log("保存成功");
+    }
+}
