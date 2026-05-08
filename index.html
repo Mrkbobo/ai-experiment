@@ -1,223 +1,87 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>AI实验平台</title>
-
-<link rel="stylesheet" href="style.css">
-
+    <meta charset="UTF-8">
+    <!-- 【核心修复】移动端viewport标签，必须加！ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AI实验平台</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-
 <body>
-<!-- 实验说明开头弹窗 -->
-<div id="introModal" class="intro-modal">
-    <div class="intro-modal-content">
-        <!-- 弹窗标题 -->
-        <h2 class="intro-title">实验知情同意与操作说明</h2>
-        
-        <!-- 可滚动的说明文本区（你可以在这里任意修改、加长内容） -->
-        <div class="intro-text">
-            <p>您好！感谢您参与本次实验。</p>
-            <br>
-            <p><strong>一、实验简介</strong></p>
-            <p>本实验是一项关于AI生成内容用户行为的学术研究，整个过程约需3-5分钟，无任何风险，所有数据均匿名收集，仅用于学术分析，严格保密。</p>
-            <br>
-            <p><strong>二、实验流程</strong></p>
-            <p>1. 进入页面后，请在下方输入框中输入需求，获取AI生成的还钱提醒话术；</p>
-            <p>2. 请在页面的任务栏中，整理并提交您最终满意的短信内容；</p>
-            <p>3. 提交后可选择继续与AI对话，或等待系统完成实验；</p>
-            <p>4. 实验结束后，请将最终弹窗截图上传至问卷，完成本次填写。</p>
-            <br>
-            <p><strong>三、注意事项</strong></p>
-            <p>1. 实验过程中请不要刷新页面，否则会重新开始；</p>
-            <p>2. 请您认真阅读每一步的提示，按照页面指引完成操作；</p>
-            <p>3. 您有权随时退出实验，退出后不会收集您的任何数据。</p>
-            <br>
-            <p>点击下方「我已阅读全部说明，同意参与实验」按钮，即可开始实验。</p>
-        </div>
-
-        <!-- 确认按钮 -->
-        <button id="introConfirmBtn" class="intro-confirm-btn">
-            我已阅读全部说明，同意参与实验
-        </button>
-    </div>
-</div>
-
-<!-- 原来的页面布局代码（你原来的内容，不用动） -->
-<div class="layout">
-    <!-- ...... 你原来的左侧聊天区、右侧任务栏代码，全部保留 ...... -->
-</div>
-<div class="layout">
-
-    <!-- 左侧聊天区域 -->
-    <div class="chat-area">
-
-        <div class="topbar">
-
-            AI 对话
-
-        </div>
-
-        <div
-            id="messages"
-            class="messages"
-        ></div>
-
-        <div
-            class="input-box"
-            id="inputBox"
-        >
-
-            <input
-                id="input"
-                placeholder="请输入..."
-            >
-
-            <button id="sendBtn">
-
-                发送
-
+    <!-- 实验说明开头弹窗 -->
+    <div id="introModal" class="intro-modal">
+        <div class="intro-modal-content">
+            <h2 class="intro-title">实验知情同意与操作说明</h2>
+            <div class="intro-text">
+                <p>您好！感谢您参与本次实验。</p>
+                <br>
+                <p><strong>一、实验简介</strong></p>
+                <p>本实验是一项关于AI生成内容用户行为的学术研究，整个过程约需3-5分钟，无任何风险，所有数据均匿名收集，仅用于学术分析，严格保密。</p>
+                <br>
+                <p><strong>二、实验流程</strong></p>
+                <p>1. 进入页面后，请在下方输入框中输入需求，获取AI生成的还钱提醒话术；</p>
+                <p>2. 请在页面右侧的任务栏中，整理并提交您最终满意的短信内容；</p>
+                <p>3. 提交后可选择继续与AI对话，或等待系统完成实验；</p>
+                <p>4. 实验结束后，请将最终弹窗截图上传至问卷，完成本次填写。</p>
+                <br>
+                <p><strong>三、注意事项</strong></p>
+                <p>1. 实验过程中请不要刷新页面，否则会重新开始；</p>
+                <p>2. 请您认真阅读每一步的提示，按照页面指引完成操作；</p>
+                <p>3. 您有权随时退出实验，退出后不会收集您的任何数据。</p>
+                <br>
+                <p>点击下方「我已阅读全部说明，同意参与实验」按钮，即可开始实验。</p>
+            </div>
+            <button id="introConfirmBtn" class="intro-confirm-btn">
+                我已阅读全部说明，同意参与实验
             </button>
-
         </div>
-
     </div>
 
-    <!-- 右侧任务栏 -->
-    <div class="sidebar">
+    <!-- 主布局 -->
+    <div class="layout">
+        <!-- 左侧聊天区域 -->
+        <div class="chat-area">
+            <div class="topbar">AI 对话</div>
+            <div id="messages" class="messages"></div>
+            <div class="input-box">
+                <input type="text" id="input" placeholder="请输入您的需求..." autocomplete="off">
+                <button id="sendBtn">发送</button>
+            </div>
+        </div>
 
-        <!-- 当前任务 -->
-        <div class="task-card">
-
-            <h2>当前任务</h2>
-
-            <p>
-
-                请您与AI助手合作撰写一则短信，
-                用于委婉地催促朋友还钱，
-                并根据 AI 提供的内容完成当前任务。
-
-            </p>
-
-            <div id="taskState">
-
-                等待开始
-
+        <!-- 右侧任务栏 -->
+        <div class="sidebar">
+            <div class="task-card">
+                <h2>当前任务</h2>
+                <p id="taskState">请先在对话框中输入需求，获取AI生成的内容</p>
+                <p>请您与AI助手合作撰写一则短信，用于委婉地催促朋友还钱，并根据AI提供的内容完成当前任务。</p>
+                <textarea id="finalText" placeholder="请在此处整理您最终满意的短信内容..." style="display: none;"></textarea>
+                <button id="submitBtn" style="display: none;">提交最终内容</button>
             </div>
 
-            <!-- 用户填写区 -->
-            <textarea
-                id="finalText"
-                placeholder="请整理最终短信内容..."
-                style="
-                    width:100%;
-                    height:140px;
-                    margin-top:15px;
-                    border-radius:12px;
-                    border:1px solid #d0d7e2;
-                    padding:12px;
-                    resize:none;
-                    box-sizing:border-box;
-                    display:none;
-                    font-size:14px;
-                    line-height:1.6;
-                    outline:none;
-                "
-            ></textarea>
-
-            <!-- 提交按钮 -->
-            <button
-                id="submitBtn"
-                style="display:none;"
-            >
-
-                已完成任务，提交
-
-            </button>
-
+            <div id="analysisCard" class="task-card" style="display:none;">
+                <h2>系统分析中</h2>
+                <p id="countText">系统正在生成实验报告（60s）</p>
+                <p>请不要关闭页面。</p>
+                <p>您可以继续与 AI 聊天，也可以等待系统自动完成。</p>
+            </div>
         </div>
-
-        <!-- 分析阶段 -->
-        <div
-            id="analysisCard"
-            class="task-card"
-            style="display:none;"
-        >
-
-            <h2>
-
-                系统分析中
-
-            </h2>
-
-            <p id="countText">
-
-                系统正在生成实验报告（60s）
-
-            </p>
-
-            <p>
-
-                请不要关闭页面。
-
-            </p>
-
-            <p>
-
-                您可以继续与 AI 聊天，
-                也可以等待系统自动完成。
-
-            </p>
-
-        </div>
-
     </div>
 
-</div>
-
-<!-- 原因弹窗 -->
-<div
-    id="reasonModal"
-    class="modal"
->
-
-    <div class="modal-content">
-
-        <h3>
-
-            您为什么继续追问？
-
-        </h3>
-
-        <button class="reason-btn">
-
-            A 对AI最后的推荐内容感兴趣
-
-        </button>
-
-        <button class="reason-btn">
-
-            B 测试系统、打发时间、无聊...
-
-        </button>
-
+    <!-- 原因选择弹窗 -->
+    <div id="reasonModal" class="modal">
+        <div class="modal-content">
+            <h3>请问您继续与AI聊天的动机是？</h3>
+            <button class="reason-btn">A.对AI最后的推荐内容感兴趣</A></button>
+            <button class="reason-btn">B.无聊、测试系统、打发时间...</button>
+            <button class="reason-btn">其他原因</button>
+        </div>
     </div>
+        <!-- 【必须加在 app.js 之前！】引入你的 config.js -->
+    <script src="config.js"></script>
 
-</div>
-
-<!-- Supabase -->
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
-<!-- 配置 -->
-<script src="config.js"></script>
-
-<!-- 主逻辑 -->
-<script src="app.js"></script>
-
+    <script src="app.js"></script>
 </body>
 </html>

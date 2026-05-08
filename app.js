@@ -24,11 +24,11 @@ const supabaseClient = supabase.createClient(
 // 6组实验条件硬编码
 // ======================
 
-const mainContent = `这是按照您的要求生成的短信话术，请您参考：
-哈喽，最近手头有点紧，
+const mainContent = `哈喽，最近手头有点紧，
 突然想起之前借你的5000块钱，
 当初约定的还款日期已经过了一个月啦，
 你看最近方便把钱还我不？
+
 要是有啥难处咱们也可以商量着来~`;
 
 const CONDITIONS = [
@@ -126,6 +126,9 @@ window.onload = function() {
     sendBtn.disabled = true;
     submitBtn.disabled = true;
     finalText.disabled = true;
+
+    // 【修复】强制页面重绘，避免布局错乱
+    window.dispatchEvent(new Event('resize'));
 };
 
 // 点击确认按钮，关闭弹窗，解锁页面
@@ -137,12 +140,19 @@ introConfirmBtn.addEventListener("click", () => {
     finalText.disabled = false;
     submitBtn.disabled = false;
     input.focus();
+
+    // 【修复】弹窗关闭后强制重绘，修复布局
+    setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+        messages.scrollTop = 0;
+    }, 100);
 });
 
 // ======================
 // 添加消息（含流式输出）
 // ======================
 
+// 普通消息（用户消息用这个）
 function addMessage(role, text) {
     const div = document.createElement("div");
     div.className = "message " + role;
@@ -150,9 +160,11 @@ function addMessage(role, text) {
         <div class="bubble">${text}</div>
     `;
     messages.appendChild(div);
+    // 【修复】消息添加后，滚动到底部
     messages.scrollTop = messages.scrollHeight;
 }
 
+// 流式输出消息（AI回复用这个）
 async function addStreamingMessage(role, text) {
     const div = document.createElement("div");
     div.className = "message " + role;
@@ -173,9 +185,12 @@ async function addStreamingMessage(role, text) {
             if (currentIndex < chars.length) {
                 bubble.innerHTML += chars[currentIndex];
                 currentIndex++;
+                // 【修复】流式输出时，始终滚动到底部
                 messages.scrollTop = messages.scrollHeight;
             } else {
                 clearInterval(typeInterval);
+                // 输出完成后，最终滚动一次
+                messages.scrollTop = messages.scrollHeight;
                 resolve();
             }
         }, 40);
@@ -217,7 +232,7 @@ async function sendMessage() {
         );
 
         // AI回答完，弹提示框
-        alert("AI 已为您生成初始内容！\n\n请先在页面的任务栏中，整理并提交您满意的最终短信内容，提交后才能继续进行实验。");
+        alert("AI 已为您生成初始内容！\n\n请先在页面右侧的任务栏中，整理并提交您满意的最终短信内容，提交后才能继续进行实验。");
 
         // 显示任务区
         finalText.style.display = "block";
@@ -349,3 +364,18 @@ async function saveData(
         console.log("保存成功，当前分组：", group_type, explain_type);
     }
 }
+
+// ======================
+// 【修复】移动端软键盘适配，防止页面滑动
+// ======================
+// 监听输入框聚焦，软键盘弹出时调整页面
+input.addEventListener('focus', () => {
+    setTimeout(() => {
+        messages.scrollTop = messages.scrollHeight;
+    }, 300);
+});
+
+// 监听窗口大小变化（软键盘弹出/收起），修复布局
+window.addEventListener('resize', () => {
+    messages.scrollTop = messages.scrollHeight;
+});

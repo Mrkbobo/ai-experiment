@@ -1,18 +1,26 @@
 /* ======================
-   全局重置 & 基础样式
+   【核心修复】全局根元素高度设置
    ====================== */
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* 禁止整个页面滚动，只允许内部容器滚动 */
+    -webkit-text-size-adjust: 100%; /* 禁止苹果手机字体自动放大 */
+    -webkit-overflow-scrolling: touch; /* 苹果手机滚动顺滑 */
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    -webkit-text-size-adjust: 100%;
 }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: #f5f7fa;
-    height: 100vh;
-    overflow: hidden;
+    position: relative;
 }
 
 /* ======================
@@ -20,7 +28,7 @@ body {
    ====================== */
 .intro-modal {
     position: fixed;
-    z-index: 2000; /* 层级最高，覆盖所有内容 */
+    z-index: 2000;
     left: 0;
     top: 0;
     width: 100%;
@@ -38,7 +46,7 @@ body {
     border-radius: 20px;
     width: 100%;
     max-width: 700px;
-    max-height: 85vh; /* 最大高度不超过屏幕85%，适配长文本 */
+    max-height: 85vh;
     display: flex;
     flex-direction: column;
     box-shadow: 0 25px 50px rgba(0,0,0,0.2);
@@ -68,7 +76,7 @@ body {
 
 .intro-text {
     flex: 1;
-    overflow-y: auto; /* 长文本自动滚动 */
+    overflow-y: auto;
     padding: 20px 24px;
     font-size: 15px;
     line-height: 1.8;
@@ -99,42 +107,18 @@ body {
     background-color: #2563eb;
 }
 
-/* 手机端弹窗适配 */
-@media screen and (max-width: 768px) {
-    .intro-modal-content {
-        max-height: 90vh;
-        border-radius: 16px;
-    }
-
-    .intro-title {
-        font-size: 18px;
-        padding: 20px 20px 12px;
-    }
-
-    .intro-text {
-        padding: 16px 20px;
-        font-size: 14px;
-    }
-
-    .intro-confirm-btn {
-        padding: 16px;
-        font-size: 15px;
-        border-bottom-left-radius: 16px;
-        border-bottom-right-radius: 16px;
-    }
-}
-
 /* ======================
    主布局
    ====================== */
 .layout {
     display: flex;
-    height: 100%;
+    height: 100%; /* 【修复】用100%继承父元素高度，替代vh避免移动端坑 */
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
     background-color: #fff;
     box-shadow: 0 0 40px rgba(0,0,0,0.05);
+    overflow: hidden;
 }
 
 /* ======================
@@ -146,6 +130,8 @@ body {
     flex-direction: column;
     border-right: 1px solid #eaecef;
     background-color: #fff;
+    height: 100%;
+    min-width: 0; /* 修复flex布局溢出问题 */
 }
 
 .topbar {
@@ -155,22 +141,28 @@ body {
     color: #1f2937;
     border-bottom: 1px solid #eaecef;
     background-color: #fff;
-    flex-shrink: 0;
+    flex-shrink: 0; /* 禁止压缩 */
 }
 
+/* 【核心修复】聊天消息容器，解决顶部空白 */
 .messages {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
     background-color: #f9fafb;
     -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* 【关键】内容从顶部开始排列，彻底解决顶部空白 */
+    align-items: stretch;
+    gap: 16px; /* 消息之间固定间距，替代margin */
 }
 
 /* 聊天消息气泡 */
 .message {
     display: flex;
-    margin-bottom: 16px;
     width: 100%;
+    flex-shrink: 0;
 }
 
 .message.user {
@@ -212,7 +204,7 @@ body {
     border-top: 1px solid #eaecef;
     background-color: #fff;
     gap: 12px;
-    flex-shrink: 0;
+    flex-shrink: 0; /* 禁止压缩 */
 }
 
 .input-box input {
@@ -240,6 +232,7 @@ body {
     cursor: pointer;
     transition: background-color 0.2s;
     white-space: nowrap;
+    min-height: 44px; /* 移动端最小点击高度 */
 }
 
 .input-box button:hover {
@@ -264,6 +257,8 @@ body {
     gap: 20px;
     flex-shrink: 0;
     min-width: 320px;
+    height: 100%;
+    -webkit-overflow-scrolling: touch;
 }
 
 .task-card {
@@ -272,6 +267,7 @@ body {
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     border: 1px solid #eaecef;
+    flex-shrink: 0;
 }
 
 .task-card h2 {
@@ -330,6 +326,7 @@ body {
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s;
+    min-height: 44px;
 }
 
 .task-card button:hover {
@@ -337,7 +334,7 @@ body {
 }
 
 /* ======================
-   原因弹窗 (Reason Modal)
+   原因选择弹窗
    ====================== */
 .modal {
     display: none;
@@ -395,6 +392,7 @@ body {
     cursor: pointer;
     transition: all 0.2s;
     text-align: left;
+    min-height: 44px;
 }
 
 .reason-btn:last-child {
@@ -407,24 +405,29 @@ body {
 }
 
 /* ======================
-   响应式适配 (手机/平板)
+   【核心修复】响应式适配 + 软键盘适配
    ====================== */
 @media screen and (max-width: 768px) {
+    /* 布局改成上下 */
     .layout {
         flex-direction: column;
         max-width: 100%;
         box-shadow: none;
+        height: 100%;
     }
 
+    /* 聊天区域固定高度，适配软键盘 */
     .chat-area {
         flex: none;
         height: 60vh;
         border-right: none;
         border-bottom: 1px solid #eaecef;
+        min-height: 300px;
     }
 
     .messages {
         padding: 16px;
+        gap: 12px;
     }
 
     .bubble {
@@ -444,15 +447,16 @@ body {
     .input-box button {
         padding: 0 20px;
         font-size: 16px;
-        min-height: 44px;
     }
 
+    /* 任务栏固定高度 */
     .sidebar {
         flex: none;
         height: 40vh;
         min-width: 100%;
         padding: 16px;
         gap: 12px;
+        min-height: 200px;
     }
 
     .task-card {
@@ -479,9 +483,9 @@ body {
         padding: 16px;
         font-size: 16px;
         margin-top: 12px;
-        min-height: 44px;
     }
 
+    /* 弹窗适配 */
     .modal-content {
         width: 95%;
         padding: 24px 20px;
@@ -496,7 +500,28 @@ body {
     .reason-btn {
         padding: 16px;
         font-size: 16px;
-        min-height: 44px;
+    }
+
+    .intro-modal-content {
+        max-height: 90vh;
+        border-radius: 16px;
+    }
+
+    .intro-title {
+        font-size: 18px;
+        padding: 20px 20px 12px;
+    }
+
+    .intro-text {
+        padding: 16px 20px;
+        font-size: 14px;
+    }
+
+    .intro-confirm-btn {
+        padding: 16px;
+        font-size: 15px;
+        border-bottom-left-radius: 16px;
+        border-bottom-right-radius: 16px;
     }
 }
 
@@ -513,5 +538,15 @@ body {
 
     .sidebar {
         padding: 12px;
+    }
+}
+
+/* 【修复】移动端软键盘弹出时，禁止页面整体滚动 */
+@media screen and (max-width: 768px) {
+    body {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
     }
 }
