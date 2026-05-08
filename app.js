@@ -58,7 +58,7 @@ const CONDITIONS = [
     {
         group_type: "structure",
         explain_type: "none",
-        full_text: mainContent`
+        full_text: mainContent + `
 
 💡猜你还想知道： 这段话术还能如何更加委婉？`
     },
@@ -89,7 +89,7 @@ const CONDITIONS = [
     {
         group_type: "derived",
         explain_type: "none",
-        full_text: mainContent`
+        full_text: mainContent + `
 
 💡猜你还想知道： 熟人往来如何得体不伤感情？`
     }
