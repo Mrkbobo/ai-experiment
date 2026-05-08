@@ -112,6 +112,7 @@ let hasFollowup = false;
 let followupQuestion = "";
 let countdown = null;
 let remaining = 60;
+let userFirstQuestion = ""; // 【修改点1】新增变量，保存用户第一次真实输入
 
 const session_id =
     Date.now().toString() +
@@ -225,6 +226,7 @@ async function sendMessage() {
 
     if (firstStage) {
         firstStage = false;
+        userFirstQuestion = text; // 【修改点2】保存用户第一次输入的真实内容
 
         await addStreamingMessage(
             "assistant",
@@ -351,7 +353,7 @@ async function saveData(
         session_id: session_id,
         group_type: group_type,
         explain_type: explain_type,
-        first_question: "帮我写一段还钱提醒话术",
+        first_question: userFirstQuestion, // 【修改点3】使用变量，替换硬编码
         continued_chat: continued_chat,
         followup_question: followup_question,
         followup_reason: followup_reason
