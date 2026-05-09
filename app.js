@@ -236,7 +236,7 @@ async function sendMessage() {
         );
 
         // AI回答完，弹提示框
-        alert("AI 已为您生成初始内容！\n\n请先在页面右侧的任务栏中，整理并提交您满意的最终短信内容，提交后才能继续进行实验。");
+        alert("AI 已为您生成初始内容！\n\n请先在页面的任务栏中，整理并提交您满意的最终短信内容，提交后才能继续进行实验。");
 
         // 显示任务区
         finalText.style.display = "block";
